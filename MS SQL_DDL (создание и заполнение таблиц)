@@ -1,0 +1,175 @@
+
+Отображение всех таблиц и view
+SELECT * FROM INFORMATION_SCHEMA.TABLES
+
+--Создание таблиц
+
+--Категории
+CREATE TABLE Event.dbo.category (
+  id INT PRIMARY KEY IDENTITY(1,1) NOT NULL,
+  name VARCHAR(45) NOT NULL
+)
+
+-- Пользователи
+CREATE TABLE Event.dbo.[user] (
+	id int IDENTITY(1,1) NOT NULL,
+	first_name varchar(45) NOT NULL,
+	last_name varchar(45) NOT NULL,
+	email varchar(45) UNIQUE NOT NULL,
+	username varchar(45) UNIQUE NOT NULL,
+	password varchar(45) NOT NULL,
+	category INT NOT NULL
+)
+
+--Компании
+CREATE TABLE Event.dbo.company (
+	id int IDENTITY(1,1) NOT NULL,
+	name varchar(45) NOT NULL,
+	manager INT NOT NULL,
+	moderator INT NOT NULL,
+	entity INT NOT NULL
+)
+
+-Сущности
+CREATE TABLE Event.dbo.entity (
+  id INT PRIMARY KEY IDENTITY(100,1) NOT NULL,
+  name VARCHAR(45) NOT NULL)
+
+-Действия
+CREATE TABLE Event.dbo.[action] (
+  id VARCHAR(45) NOT NULL,
+  name VARCHAR(45) NOT NULL
+  )
+
+- Доступ
+CREATE TABLE Event.dbo.access (
+	id INT IDENTITY(1,1) NOT NULL,
+  entity INT NOT NULL,
+	category INT NOT NULL,
+  access INT NOT NULL
+)
+
+- Комментарий
+CREATE TABLE Event.dbo.comment (
+	id INT IDENTITY(1,1) NOT NULL,
+  text VARCHAR(45) NOT NULL,
+  entity INT NOT NULL,
+	[user] INT NOT NULL,
+  event INT NOT NULL
+)
+
+- Мероприятие
+CREATE TABLE Event.dbo.event (
+	id INT IDENTITY(1,1) NOT NULL,
+  company INT NOT NULL,
+  name VARCHAR(45) NOT NULL,
+  place VARCHAR(45) NOT NULL,
+  entity INT NOT NULL
+)
+
+- Уведомление
+CREATE TABLE Event.dbo.notification (
+	id INT IDENTITY(1,1) NOT NULL,
+  entity INT NOT NULL,
+  event INT NOT NULL,
+	[user] INT NOT NULL
+)
+
+- Лайк
+CREATE TABLE Event.dbo.[like] (
+	id INT IDENTITY(1,1) NOT NULL,
+  entity INT NOT NULL,
+  event INT NOT NULL,
+	[user] INT NOT NULL
+)
+
+--Вставка данных в таблицы
+--Категории
+INSERT INTO Event.dbo.category
+VALUES ('non_registered'),
+       ('registered'),
+       ('moderator'),
+       ('manager')
+
+--Пользователи
+INSERT INTO Event.dbo.[user]
+VALUES ('Ivan', 'Ivanov', 'ivanov@mail.ru', 'ivanovii', 'qwerty59', 1),
+       ('Petr', 'Petrov', 'petrov@yandex.ru', 'petrovpp', 'qwerty60', 1),
+       ('Alexey', 'Smirnov', 'smirnov@gmail.com', 'smirnovav', 'qwerty61', 1),
+       ('Svetlana', 'Basenko', 'basenko@yandex.ru', 'basenkosp', 'qwerty62', 3),
+       ('Alexander', 'Lozovoi', 'yan@mail.ru', 'lozovoiai', 'qwerty63', 3),
+       ('Elena', 'Shevchenc', 'fow23@yandex.ru', 'shevchencoe', 'qwerty64', 3),
+       ('Alina', 'Arapova', 'arap78@mail.ru', 'arapovaas', 'qwerty65', 4),
+       ('Elena', 'Prokhorova', 'proh_56@gmail.com', 'prokhorovae', 'qwerty66', 4),
+       ('Grigoriy', 'Yuriev', 'yyyy345@gmail.com', 'yurievg', 'qwerty67', 4),
+       ('Natalya', 'Petrova', 'petrova@gmail.com', 'petrovan', 'qwerty80', 2)
+
+--Компании
+INSERT INTO Event.dbo.company
+values ('LLC Romashka', 7, 4, 101),
+       ('LLC ASCONA', 8, 5, 101),
+       ('LLC NPF-SKAD', 9, 6, 101)
+
+-Сущности
+INSERT INTO Event.dbo.entity
+VALUES ('event'),
+       ('company'),
+       ('like'),
+       ('comment'),
+       ('notification')
+
+-Действия
+INSERT INTO Event.dbo.[action]
+VALUES ('V', 'view'),
+       ('E', 'edit'),
+       ('A', 'add'),
+       ('R', 'receive')
+
+- Доступ
+INSERT INTO Event.dbo.access
+VALUES (100, 1,'V'),
+       (100, 2, 'V'),
+       (100, 3, 'V'),
+       (100, 3, 'E'),
+       (100, 3, 'A'),
+       (100, 4, 'V'),
+       (100, 4, 'E'),
+       (100, 4, 'A'),
+       (101, 1, 'V'),
+       (101, 2, 'V'),
+       (101, 3, 'V'),
+       (101, 3, 'E'),
+       (101, 4, 'V'),
+       (102, 1, 'V'),
+       (102, 2, 'V'),
+       (102, 2, 'A'),
+       (102, 3, 'V'),
+       (102, 4, 'V'),
+       (103, 1, 'V'),
+       (103, 2, 'V'),
+       (103, 2, 'A'),
+       (103, 3, 'V'),
+       (103, 3, 'E'),
+       (103, 4, 'V'),
+       (104, 3, 'R')
+
+- Комментарий
+INSERT INTO Event.dbo.comment
+VALUES ('fine', 103, 1, 2),
+       ('good', 103, 10, 1)
+
+--Мероприятие
+INSERT INTO Event.dbo.event
+VALUES (2,	'Meet',	'Expocenter', 100),
+       (3,	'Seminar', 'Congress hall',	100),
+       (1,	'Meetup', 'Crocus',	100)
+
+- Уведомление
+INSERT INTO Event.dbo.notification
+VALUES (104, 3, 1),
+       (104, 2, 10)
+
+--Лайк
+INSERT INTO Event.dbo.[like]
+VALUES (102, 1, 1),
+       (102, 3, 10)
