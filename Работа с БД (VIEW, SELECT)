@@ -1,0 +1,150 @@
+Создание VIEW
+-- VIEW с данными модераторов в привязке к компаниям (объединение с помощью join).
+CREATE VIEW company_moderator AS
+SELECT u.id,
+        u.first_name,
+        u.last_name,
+        c.name FROM [user] u
+JOIN company c ON c.moderator = u.id
+
+-- VIEW c просмотром количества юзеров в разрезе категорий
+
+CREATE VIEW category_count AS
+SELECT c.name,
+       COUNT(u.id) as count
+FROM [user] u,
+      category c
+WHERE c.id = u.category
+GROUP BY u.category,
+      c.name
+
+-- VIEW для просмотра количества лайков в разрезе компаний
+CREATE VIEW company_like AS
+SELECT COUNT(l.id) as count_like,
+       c.name
+FROM [like] l,
+      event e,
+      company c
+WHERE l.event = e.id AND
+		  c.id = e.company
+GROUP BY c.id,
+         c.name
+
+
+Запросы к БД
+
+a. Регистрация нового пользователя
+
+INSERT INTO [user]
+VALUES ('Ivan',
+        'Ivanov',
+        'ivanov@mail.ru',
+        'ivanovii',
+        'qwerty59',
+        1)
+
+b. Добавление нового комментария
+INSERT INTO comment
+VALUES ('fine',
+        103,
+        2,
+        1)
+
+c. Получение комментариев события
+
+SELECT c.text,
+       u.username,
+       e.name
+FROM comment c,
+     event e,
+     [user] u
+WHERE c.event = e.id AND
+      c.[user] = u.id AND
+      e.name = 'Seminar'
+
+d. Редактирование комментария с проверкой доступа пользователя на это действие
+
+-- Cоздаем view с user_id, которые могут редактировать комментарии
+CREATE VIEW can_edit_comment AS
+SELECT u.id
+FROM access a, entity e, [action] a2, category c, [user] u
+WHERE a.entity = e.id AND
+      a2.id = a.[action] AND
+      a.category = c.id AND
+      u.category = c.id AND
+      e.name = 'comment' AND
+      a2.name = 'edit'
+
+/*
+1. Декларируем переменную с id текущего юзера (задано значение по умолчанию,
+передача значения в данную переменную будет осуществляться приложением.
+2. Вносим изменения, предварительно проверяя права текущего юзера
+*/
+
+BEGIN
+DECLARE @current_user_id INT = 5
+
+IF @current_user_id  in (SELECT id FROM can_edit_comment)
+    UPDATE comment
+    SET [text] = 'fine!!'
+    WHERE id = 1
+END
+
+5. Редактирование данных события в отношении определенной компании (например нужно поменять
+event_id = 1, company = 'LLC Ascona', place = 'Expocenter')
+
+-- способ 1
+/*
+1. Декларируем переменную с id текущего юзера (задано значение по умолчанию,
+передача значения в данную переменную будет осуществляться приложением.
+2. Вносим изменения, предварительно проверяя права текущего юзера
+*/
+
+BEGIN
+DECLARE @current_user_id INT = 5
+
+IF @current_user_id  in
+      (SELECT u.id
+       FROM [user] u,
+            category c,
+            access a,
+            [action] a2,
+            entity e
+       WHERE u.category = c.id AND
+         		 a.category = c.id AND
+         		 a2.id = a.[action] AND
+         		 e.id  = a.entity AND
+         		 e.name = 'event' AND
+         		 a2.name = 'edit'
+       INTERSECT
+       (SELECT c2.manager
+        FROM company c2
+        WHERE c2.name = 'LLC ASCONA'
+        UNION
+        SELECT c2.moderator FROM company c2
+        WHERE c2.name = 'LLC ASCONA')
+        )
+             UPDATE event
+             SET place = 'Place3'
+             WHERE id = 1
+END
+
+--способ 2 если мы точно знаем, что менеджеры и модераторы компаний имеют полномочия на редактирование места
+
+BEGIN
+
+DECLARE @current_user_id INT = 5
+
+IF @current_user_id in
+              (
+              SELECT manager as id
+         	    FROM company c
+         	    WHERE c.name = 'LLC ASCONA'
+         	    UNION
+         	    SELECT moderator FROM company c
+         	    WHERE c.name = 'LLC ASCONA'
+              )
+         	UPDATE event
+         	SET place = 'Place!'
+         	WHERE id = 1
+END
